@@ -1,0 +1,91 @@
+﻿<Window x:Class="MarkLandmark.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
+        xmlns:local="clr-namespace:MarkLandmark"
+        xmlns:mvvm="http://www.galasoft.ch/mvvmlight"
+        mc:Ignorable="d"
+        WindowStyle="None" 
+        ResizeMode="NoResize" 
+        WindowStartupLocation="CenterScreen" 
+        WindowState="Maximized"
+        Background="#111111"
+        Title="MainWindow">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="KeyDown">
+            <mvvm:EventToCommand Command="{Binding Path=KeyDownCmd}"
+                                 PassEventArgsToCommand="True"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <Window.DataContext>
+        <local:MainViewModel/>
+    </Window.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <DockPanel>
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="File">
+                    <MenuItem Header="Open" Command="{Binding OpenDatasetCmd}"/>
+                    <MenuItem Header="Save" Command="{Binding SaveCmd}" IsEnabled="{Binding IsSaveEnabled}"/>
+                    <MenuItem Header="Previous" Command="{Binding PreviousCmd}" IsEnabled="{Binding IsPreviousEnabled}"/>
+                    <MenuItem Header="Next" Command="{Binding NextCmd}" IsEnabled="{Binding IsNextEnabled}"/>
+                    <MenuItem Header="PreviousFolder" Command="{Binding PreviousFolderCmd}"/>
+                    <MenuItem Header="NextFolder" Command="{Binding NextFolderCmd}"/>
+                    <MenuItem Header="Close" Command="{Binding CloseCmd}"/>
+                </MenuItem>
+            </Menu>
+            <StackPanel Background="#111111"/>
+        </DockPanel>
+
+        <Grid Grid.Row="1">
+            <local:DataPiping.DataPipes>
+                <local:DataPipeCollection>
+                    <local:DataPipe Source="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid}}, Path=ActualWidth}"
+                                    Target="{Binding Path=ImagePanelWidth, Mode=OneWayToSource}"/>
+                    <local:DataPipe Source="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid}}, Path=ActualHeight}"
+                                    Target="{Binding Path=ImagePanelHeight, Mode=OneWayToSource}"/>
+                </local:DataPipeCollection>
+            </local:DataPiping.DataPipes>
+            <Image Source="{Binding Path=ImageSource, Mode=OneWay}"
+                   Stretch="Uniform"/>
+
+            <ItemsControl ItemsSource="{Binding Path=RenderedLandmarks}" >
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Ellipse Name="little_landmark" 
+                                 Width="10" Height="10"
+                                 Fill="Red"
+                                 RenderTransformOrigin="0.5,0.5"
+                                 ToolTip="{Binding Path=Name}"
+                                 Visibility="{Binding Path=Visibility}"
+                                 Cursor="Hand">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="MouseLeftButtonDown">
+                                    <mvvm:EventToCommand Command="{Binding Path=MouseLeftButtonDownCmd}"
+                                                         PassEventArgsToCommand="True"/>
+                                </i:EventTrigger>
+                                <i:EventTrigger EventName="Loaded">
+                                    <i:InvokeCommandAction Command="{Binding Path=LoadedCmd}" 
+                                                           CommandParameter="{Binding ElementName=little_landmark}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                            <Ellipse.RenderTransform>
+                                <TranslateTransform X="{Binding X, Mode=TwoWay}" Y="{Binding Y, Mode=TwoWay}"/>
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </Grid>
+</Window>
