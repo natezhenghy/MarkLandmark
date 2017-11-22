@@ -13,6 +13,15 @@
         WindowState="Maximized"
         Background="#111111"
         Title="MainWindow">
+    <Window.Resources>
+        <local:LandmarkNameToColorConverter x:Key="LandmarkColorConverter"
+                                            FaceContourColor="Green"
+                                            EyebrowColor="DarkMagenta"
+                                            EyeColor="OrangeRed"
+                                            NoseColor="Violet"
+                                            MouthColor="Blue"
+                                            DefaultColor="Red"/>
+    </Window.Resources>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="KeyDown">
             <mvvm:EventToCommand Command="{Binding Path=KeyDownCmd}"
@@ -63,12 +72,12 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Ellipse Name="little_landmark" 
-                                 Width="10" Height="10"
-                                 Fill="Red"
+                                 Width="8" Height="8"
+                                 Fill="{Binding Path=Name, Converter={StaticResource LandmarkColorConverter}}"
                                  RenderTransformOrigin="0.5,0.5"
                                  ToolTip="{Binding Path=Name}"
                                  Visibility="{Binding Path=Visibility}"
-                                 Cursor="Hand">
+                                 Cursor="Cross">
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="MouseLeftButtonDown">
                                     <mvvm:EventToCommand Command="{Binding Path=MouseLeftButtonDownCmd}"

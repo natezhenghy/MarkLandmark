@@ -96,6 +96,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Model\DataPipe.cs" />
+    <Compile Include="Model\LandmarkNameToColorConverter.cs" />
     <Compile Include="Model\RelayCommand.cs" />
     <Compile Include="ViewModel\Landmark.cs" />
     <Compile Include="Model\Model.cs" />
