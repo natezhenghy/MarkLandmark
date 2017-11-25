@@ -29,6 +29,7 @@ namespace MarkLandmark
         private bool isNextEnabled;
 
         private BitmapImage imageSource;
+        private String imagePath = "Please open database";
 
         private Model _model = new Model();
 
@@ -59,6 +60,22 @@ namespace MarkLandmark
                 {
                     imageSource = value;
                     RaisePropertyChanged("ImageSource");
+                }
+            }
+        }
+
+        public String ImagePath
+        {
+            get
+            {
+                return imagePath;
+            }
+            set
+            {
+                if (value != imagePath)
+                {
+                    imagePath = value;
+                    RaisePropertyChanged("ImagePath");
                 }
             }
         }
@@ -306,6 +323,7 @@ namespace MarkLandmark
 
             var bitmapImage = new BitmapImage(new Uri(image.FullName, UriKind.Absolute));
             ImageSource = bitmapImage;
+            ImagePath = _model.ImgFolders[_folderIndex].FullName + "\\" + _fppName + ".jpg";
 
             if (!string.IsNullOrEmpty(fppContent))
             {
@@ -359,7 +377,12 @@ namespace MarkLandmark
             _model.Landmarks.Add(new Landmark { X = x, Y = y, Name = (Landmark.LandmarkName)(idx) });
             double renderedX, renderedY;
             Coor_ActualToRender(out renderedX, out renderedY, x, y);
-            RenderedLandmarks.Add(new Landmark { X = renderedX, Y = renderedY, Name = (Landmark.LandmarkName)(idx) });
+            var name = (Landmark.LandmarkName) (idx);
+            var visibility =
+                (name == Landmark.LandmarkName.left_eye_center || name == Landmark.LandmarkName.right_eye_center)
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
+            RenderedLandmarks.Add(new Landmark { X = renderedX, Y = renderedY, Name = name, Visibility = visibility});
         }
 
         private void ClearVisualization()
@@ -444,6 +467,8 @@ namespace MarkLandmark
                 return;
             }
 
+            UpdateEyeCenter();
+
             var label = (from Landmark pnt in renderedLandmarks
                          select Coor_RenderToActual(pnt.X, pnt.Y).ToString())
                          .Aggregate((x, y) => { return x + "\n" + y; });
@@ -455,6 +480,38 @@ namespace MarkLandmark
                 labelFile.Write(label);
                 labelFile.Flush();
             }
+        }
+
+        private void UpdateEyeCenter()
+        {
+            var lEyeCenter = RenderedLandmarks[(int) Landmark.LandmarkName.left_eye_center];
+            var rEyeCenter = RenderedLandmarks[(int)Landmark.LandmarkName.right_eye_center];
+            double lSumX = 0;
+            double lSumY = 0;
+            double rSumX = 0;
+            double rSumY = 0;
+            int lCount = 0;
+            int rCount = 0;
+            foreach (var landmark in RenderedLandmarks)
+            {
+                var name = landmark.Name.ToString();
+                if (name.StartsWith("left_eye_") && !name.Equals("left_eye_center"))
+                {
+                    lSumX += landmark.X;
+                    lSumY += landmark.Y;
+                    lCount += 1;
+                }
+                else if (name.StartsWith("right_eye_") && !name.Equals("right_eye_center"))
+                {
+                    rSumX += landmark.X;
+                    rSumY += landmark.Y;
+                    rCount += 1;
+                }
+            }
+            lEyeCenter.X = lSumX / lCount;
+            lEyeCenter.Y = lSumY / lCount;
+            rEyeCenter.X = rSumX / rCount;
+            rEyeCenter.Y = rSumY / rCount;
         }
 
         private void UpdateIsSaveEnabled()

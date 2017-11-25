@@ -7,12 +7,12 @@
         xmlns:local="clr-namespace:MarkLandmark"
         xmlns:mvvm="http://www.galasoft.ch/mvvmlight"
         mc:Ignorable="d"
-        WindowStyle="None" 
+        WindowStyle="SingleBorderWindow" 
         ResizeMode="NoResize" 
         WindowStartupLocation="CenterScreen" 
         WindowState="Maximized"
         Background="#111111"
-        Title="MainWindow">
+        Title="{Binding ImagePath}">
     <Window.Resources>
         <local:LandmarkNameToColorConverter x:Key="LandmarkColorConverter"
                                             FaceContourColor="Green"
