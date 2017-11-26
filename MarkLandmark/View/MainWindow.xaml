@@ -21,6 +21,7 @@
                                             NoseColor="Violet"
                                             MouthColor="Blue"
                                             DefaultColor="Red"/>
+        <local:LandmarkNameToVisualStringConverter x:Key="LandmarkVisualStringConverter"/>
     </Window.Resources>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="KeyDown">
@@ -38,14 +39,14 @@
         </Grid.RowDefinitions>
         <DockPanel>
             <Menu DockPanel.Dock="Top">
-                <MenuItem Header="File">
-                    <MenuItem Header="Open" Command="{Binding OpenDatasetCmd}"/>
-                    <MenuItem Header="Save" Command="{Binding SaveCmd}" IsEnabled="{Binding IsSaveEnabled}"/>
-                    <MenuItem Header="Previous" Command="{Binding PreviousCmd}" IsEnabled="{Binding IsPreviousEnabled}"/>
-                    <MenuItem Header="Next" Command="{Binding NextCmd}" IsEnabled="{Binding IsNextEnabled}"/>
-                    <MenuItem Header="PreviousFolder" Command="{Binding PreviousFolderCmd}"/>
-                    <MenuItem Header="NextFolder" Command="{Binding NextFolderCmd}"/>
-                    <MenuItem Header="Close" Command="{Binding CloseCmd}"/>
+                <MenuItem Header="{StaticResource MenuItem_File_Header}">
+                    <MenuItem Header="{StaticResource MenuItem_Open_Header}" Command="{Binding OpenDatasetCmd}"/>
+                    <MenuItem Header="{StaticResource MenuItem_Save_Header}" Command="{Binding SaveCmd}" IsEnabled="{Binding IsSaveEnabled}"/>
+                    <MenuItem Header="{StaticResource MenuItem_PreviousImage_Header}" Command="{Binding PreviousCmd}" IsEnabled="{Binding IsPreviousEnabled}"/>
+                    <MenuItem Header="{StaticResource MenuItem_NextImage_Header}" Command="{Binding NextCmd}" IsEnabled="{Binding IsNextEnabled}"/>
+                    <MenuItem Header="{StaticResource MenuItem_PreviousFolder_Header}" Command="{Binding PreviousFolderCmd}" IsEnabled="{Binding IsPreviousFolderEnabled}"/>
+                    <MenuItem Header="{StaticResource MenuItem_NextFolder_Header}" Command="{Binding NextFolderCmd}" IsEnabled="{Binding IsNextFolderEnabled}"/>
+                    <MenuItem Header="{StaticResource MenuItem_Close_Header}" Command="{Binding CloseCmd}"/>
                 </MenuItem>
             </Menu>
             <StackPanel Background="#111111"/>
@@ -75,7 +76,7 @@
                                  Width="8" Height="8"
                                  Fill="{Binding Path=Name, Converter={StaticResource LandmarkColorConverter}}"
                                  RenderTransformOrigin="0.5,0.5"
-                                 ToolTip="{Binding Path=Name}"
+                                 ToolTip="{Binding Path=Name, Converter={StaticResource LandmarkVisualStringConverter}}"
                                  Visibility="{Binding Path=Visibility}"
                                  Cursor="Cross">
                             <i:Interaction.Triggers>

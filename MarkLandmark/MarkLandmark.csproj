@@ -87,6 +87,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Resource\StringResource.zh-CN.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Resource\StringResource.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -96,6 +104,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Model\DataPipe.cs" />
+    <Compile Include="Model\LandmarkNameToVisualStringConverter.cs" />
     <Compile Include="Model\LandmarkNameToColorConverter.cs" />
     <Compile Include="Model\RelayCommand.cs" />
     <Compile Include="ViewModel\Landmark.cs" />

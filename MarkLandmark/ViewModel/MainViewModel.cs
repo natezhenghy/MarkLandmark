@@ -27,9 +27,11 @@ namespace MarkLandmark
         private bool isSaveEnabled;
         private bool isPreviousEnabled;
         private bool isNextEnabled;
+        private bool isPreviousFolderEnabled;
+        private bool isNextFolderEnabled;
 
         private BitmapImage imageSource;
-        private String imagePath = "Please open database";
+        private String imagePath = (String)App.Current.FindResource("Prompt_OpenDatabase");
 
         private Model _model = new Model();
 
@@ -116,7 +118,7 @@ namespace MarkLandmark
         {
             get
             {
-                return new RelayCommand(OnPreviousFolder);
+                return new RelayCommand(OnPreviousFolderWrapper);
             }
         }
 
@@ -188,6 +190,38 @@ namespace MarkLandmark
                 {
                     isNextEnabled = value;
                     RaisePropertyChanged("IsNextEnabled");
+                }
+            }
+        }
+
+        public bool IsPreviousFolderEnabled
+        {
+            get
+            {
+                return isPreviousFolderEnabled;
+            }
+            set
+            {
+                if(value != isPreviousFolderEnabled)
+                {
+                    isPreviousFolderEnabled = value;
+                    RaisePropertyChanged("IsPreviousFolderEnabled");
+                }
+            }
+        }
+
+        public bool IsNextFolderEnabled
+        {
+            get
+            {
+                return isNextFolderEnabled;
+            }
+            set
+            {
+                if(value != isNextFolderEnabled)
+                {
+                    isNextFolderEnabled = value;
+                    RaisePropertyChanged("IsNextFolderEnabled");
                 }
             }
         }
@@ -299,6 +333,8 @@ namespace MarkLandmark
 
             //选取第一张图
             _fppIndex = pickFirst ? 0 : (_model.ImgList.Count - 1);
+            IsPreviousFolderEnabled = _folderIndex > 0;
+            IsNextFolderEnabled = _folderIndex >= 0 && _folderIndex < (_model.FppFolders.Count - 1);
             DisplayImage();
         }
 
@@ -412,7 +448,12 @@ namespace MarkLandmark
             }
         }
 
-        private void OnPreviousFolder(bool pickFirst = true)
+        private void OnPreviousFolderWrapper()
+        {
+            OnPreviousFolder(true);
+        }
+
+        private void OnPreviousFolder(bool pickFirst=true)
         {
             if (_folderIndex != 0)
             {
@@ -604,8 +645,8 @@ namespace MarkLandmark
             if (renderedLandmarks.Count > 0 && renderedLandmarks.Any(x => x.IsDirty))
             {
                 var result = System.Windows.MessageBox.Show(
-                    "Some landmark(s) are modified. Are you willing to save your changes before you quit? Click Yes to save. Click No to discard.",
-                    "Warning",
+                    (String)App.Current.FindResource("Prompt_OnClosingSave_Text"),
+                    (String)App.Current.FindResource("Prompt_OnClosingSave_Caption"),
                     MessageBoxButton.YesNo);
 
                 if (result == MessageBoxResult.Yes)
