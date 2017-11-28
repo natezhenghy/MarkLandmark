@@ -8,7 +8,7 @@ namespace MarkLandmark
     {
         #region [Field]
 
-        private FileInfo curFolder;
+        private DirectoryInfo dsetFolder;
 
         private ObservableCollection<DirectoryInfo> imgFolders = new ObservableCollection<DirectoryInfo>();
 
@@ -24,18 +24,18 @@ namespace MarkLandmark
 
         #region [Properties]
 
-        public FileInfo CurFolder
+        public DirectoryInfo DsetFolder
         {
             get
             {
-                return this.curFolder;
+                return this.dsetFolder;
             }
             set
             {
-                if (value != this.curFolder)
+                if (value != this.dsetFolder)
                 {
-                    this.curFolder = value;
-                    RaisePropertyChanged("CurFolder");
+                    this.dsetFolder = value;
+                    RaisePropertyChanged("DsetFolder");
                 }
             }
         }
@@ -49,6 +49,8 @@ namespace MarkLandmark
         {
             get { return this.fppFolders; }
         }
+
+
 
         public ObservableCollection<FileInfo> ImgList
         {

@@ -16,6 +16,12 @@
     <sys:String x:Key="Prompt_OnClosingSave_Text">Some landmark(s) are modified. Are you willing to save your changes before you quit? Click Yes to save. Click No to discard.</sys:String>
     <sys:String x:Key="Prompt_OnClosingSave_Caption">Warning</sys:String>
 
+    <sys:String x:Key="Prompt_LabellingFinish">Labelling has finished. Loading first image...</sys:String>
+    <sys:String x:Key="Prompt_LabellingProgress">Current Labelling Progress</sys:String>
+    <sys:String x:Key="Prompt_LabellingResume">Resume from previous labelling progress?</sys:String>
+    <sys:String x:Key="Prompt_LabellingCorrupt">Labelling progress log is corrupted. Please select current image manually.</sys:String>
+    <sys:String x:Key="Prompt_LabellingSelectError">Please select image from current selected dataset folder.</sys:String>
+
     <sys:String x:Key="Landmark_Unknown">Unknown</sys:String>
     <sys:String x:Key="Landmark_contour_chin">contour chin</sys:String>
     <sys:String x:Key="Landmark_contour_left1">contour left1</sys:String>

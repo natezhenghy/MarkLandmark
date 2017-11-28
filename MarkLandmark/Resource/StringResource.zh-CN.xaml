@@ -13,8 +13,15 @@
 
     <sys:String x:Key="Prompt_OpenDatabase">请指定数据集路径（文件->打开）并继续...</sys:String>
 
-    <sys:String x:Key="Prompt_OnClosingSave_Text">部分标记点已被修改。是否保存修改后退出？保存请按是，放弃修改请安否。</sys:String>
+    <sys:String x:Key="Prompt_OnClosingSave_Text">部分标记点已被修改。是否保存修改后退出？保存请按是，放弃修改请按否。</sys:String>
     <sys:String x:Key="Prompt_OnClosingSave_Caption">提示</sys:String>
+
+    <sys:String x:Key="Prompt_LabellingFinish">该数据库标注已完成。 正在载入第一张图片...</sys:String>
+    <sys:String x:Key="Prompt_LabellingProgress">当前标注进度</sys:String>
+    <sys:String x:Key="Prompt_LabellingResume">从当前的标注进度继续？</sys:String>
+    <sys:String x:Key="Prompt_LabellingCorrupt">标注进度记录文件已损坏，请手动选择当前进度图片。</sys:String> 
+    <sys:String x:Key="Prompt_LabellingSelectError">请从当前数据库文件夹选择图片。</sys:String>
+
 
     <sys:String x:Key="Landmark_Unknown">未知</sys:String>
     <sys:String x:Key="Landmark_contour_chin">面部轮廓-下巴</sys:String>

@@ -3,7 +3,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -32,6 +35,10 @@ namespace MarkLandmark
 
         private BitmapImage imageSource;
         private String imagePath = (String)App.Current.FindResource("Prompt_OpenDatabase");
+        private String logPathRelative = "\\log";
+
+        private static readonly byte[] SALT = new byte[] { 0x26, 0xdc, 0xff, 0x00, 0xad, 0xed, 0x7a, 0xee, 0xc5, 0xfe, 0x07, 0xaf, 0x4d, 0x08, 0x22, 0x3c };
+        private static string password = "13104036";
 
         private Model _model = new Model();
 
@@ -273,8 +280,8 @@ namespace MarkLandmark
                     return;
 
                 //选取各子文件夹
-                DirectoryInfo di = new DirectoryInfo(folderPicker.SelectedPath);
-                var subfolders = di.GetDirectories();
+                _model.DsetFolder = new DirectoryInfo(folderPicker.SelectedPath);
+                var subfolders = _model.DsetFolder.GetDirectories();
 
                 foreach (var folder in subfolders)
                 {
@@ -303,19 +310,22 @@ namespace MarkLandmark
                 }
                 _folderIndex = 0;
 
+                //加载当前工作进度
+                LoadProgress();
+
                 IsNextEnabled = !(_fppIndex == (_model.ImgList.Count - 1) && (_folderIndex != (_model.ImgFolders.Count - 1)));
                 IsPreviousEnabled = !(_fppIndex == 0 && _folderIndex == 0);
 
-                //选取第一个子文件夹
-                OpenSubFolder();
+                //选取当前工作子文件夹
+                OpenSubFolder(null);
             }
             catch (Exception)
             {
                 ClearVisualization();
             }
         }
-
-        private void OpenSubFolder(bool pickFirst = true)
+        
+        private void OpenSubFolder(bool? pickFirst = true)
         {
             //选取图片
             _model.ImgList.Clear();
@@ -332,7 +342,11 @@ namespace MarkLandmark
             }
 
             //选取第一张图
-            _fppIndex = pickFirst ? 0 : (_model.ImgList.Count - 1);
+            if (pickFirst == true)
+                _fppIndex = 0;
+            else if (pickFirst == false)
+                _fppIndex = (_model.ImgList.Count - 1);
+
             IsPreviousFolderEnabled = _folderIndex > 0;
             IsNextFolderEnabled = _folderIndex >= 0 && _folderIndex < (_model.FppFolders.Count - 1);
             DisplayImage();
@@ -507,6 +521,7 @@ namespace MarkLandmark
             {
                 return;
             }
+            SaveProgress();
 
             UpdateEyeCenter();
 
@@ -638,6 +653,10 @@ namespace MarkLandmark
             {
                 OnSave();
             }
+            else
+            {
+                SaveProgress();
+            }
         }
 
         private void OnWindowClosing()
@@ -668,6 +687,214 @@ namespace MarkLandmark
                     x.Close();
                 }
             }
+        }
+
+        private void LoadProgress()
+        {
+            var logPath = _model.DsetFolder + logPathRelative;
+            String logContent;
+            try
+            {
+                byte[] logContentEncrypted = System.IO.File.ReadAllBytes(logPath);
+
+                using (Rijndael myRijndael = Rijndael.Create())
+                {
+                    Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(password, SALT);
+                    myRijndael.Key = pdb.GetBytes(32);
+                    myRijndael.IV = pdb.GetBytes(16);
+
+                    // Decrypt the bytes to a string.
+                    logContent = DecryptStringFromBytes(logContentEncrypted, myRijndael.Key, myRijndael.IV);
+
+                }
+                
+
+                var tokens = logContent.Split('-');
+                if (tokens[0] == "GODNESSOFLABELLING" && tokens[1] == "DIR" && tokens[3] == "FPP" //格式
+                    && Int32.TryParse(tokens[2], out int folderProgress) &&
+                    Int32.TryParse(tokens[4], out int fppProgress) //合法数字
+                    && folderProgress >= 0 && folderProgress < _model.FppFolders.Count //合法folder index
+                    && fppProgress >= 0 &&
+                    fppProgress < _model.FppFolders[folderProgress].GetFiles().Length) //合法fpp index
+                {
+                    if (folderProgress == _model.FppFolders.Count - 1
+                        && fppProgress == _model.FppFolders[folderProgress].GetFiles().Length - 1)
+                    {
+                        var result = System.Windows.MessageBox.Show((String)App.Current.FindResource("Prompt_LabellingFinish"), (String)App.Current.FindResource("Prompt_LabellingProgress"));
+
+                        _folderIndex = 0;
+                        _fppIndex = 0;
+                    }
+                    else
+                    {
+                        var result =
+                            System.Windows.MessageBox.Show((String)App.Current.FindResource("Prompt_LabellingResume"), (String)App.Current.FindResource("Prompt_LabellingProgress"), MessageBoxButton.YesNo);
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            if (fppProgress < _model.FppFolders[folderProgress].GetFiles().Length - 1)
+                            {
+                                _folderIndex = folderProgress;
+                                _fppIndex = fppProgress + 1;
+                            }
+                            else
+                            {
+                                _folderIndex = folderProgress + 1;
+                                _fppIndex = 0;
+                            }
+
+                        }
+                        else
+                        {
+                            _folderIndex = 0;
+                            _fppIndex = 0;
+                        }
+                    }
+
+                }
+                else
+                    throw new FileFormatException();
+
+            }
+            catch (Exception)
+            {
+                var result = System.Windows.MessageBox.Show((String)App.Current.FindResource("Prompt_LabellingCorrupt"), (String)App.Current.FindResource("Prompt_LabellingProgress"));
+
+                while (true)
+                {
+                    var filePicker = new OpenFileDialog();
+
+                    var sfr = filePicker.ShowDialog();
+
+                    if (sfr != DialogResult.OK && sfr != DialogResult.Yes)
+                        return;
+
+                    var file = new FileInfo(filePicker.FileName);
+                    var folder = new DirectoryInfo(file.DirectoryName);
+                    var folderIndex = _model.ImgFolders.Select(o => o.Name).ToList().IndexOf(folder.Name);
+                    if (folderIndex != -1)
+                    {
+                        var fppIndex = _model.ImgFolders[folderIndex].GetFiles().Select(o => o.Name).ToList()
+                            .IndexOf(file.Name);
+                        if (fppIndex != -1)
+                        {
+                            _fppIndex = fppIndex;
+                            _folderIndex = folderIndex;
+                            return;
+                        }
+                    }
+                    System.Windows.MessageBox.Show((String)App.Current.FindResource("Prompt_LabellingSelectError"), (String)App.Current.FindResource("Prompt_LabellingProgress"));
+                }
+            }
+
+        }
+
+        private void SaveProgress()
+        {
+            var logContent = "GODNESSOFLABELLING-DIR-" + _folderIndex + "-FPP-" + _fppIndex;
+            var logPath = _model.DsetFolder + logPathRelative;
+
+            using (Rijndael myRijndael = Rijndael.Create())
+            {
+                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(password, SALT);
+                myRijndael.Key = pdb.GetBytes(32);
+                myRijndael.IV = pdb.GetBytes(16);
+
+                // Encrypt the string to an array of bytes.
+                byte[] logContentEncripted = EncryptStringToBytes(logContent, myRijndael.Key, myRijndael.IV);
+                using (BinaryWriter bw = new BinaryWriter(new FileStream(logPath, FileMode.Create)))
+                {
+                    bw.Write(logContentEncripted);
+                    bw.Flush();
+                }
+            }
+        }
+
+        static byte[] EncryptStringToBytes(string plainText, byte[] Key, byte[] IV)
+        {
+            // Check arguments.
+            if (plainText == null || plainText.Length <= 0)
+                throw new ArgumentNullException("plainText");
+            if (Key == null || Key.Length <= 0)
+                throw new ArgumentNullException("Key");
+            if (IV == null || IV.Length <= 0)
+                throw new ArgumentNullException("IV");
+            byte[] encrypted;
+            // Create an Rijndael object
+            // with the specified key and IV.
+            using (Rijndael rijAlg = Rijndael.Create())
+            {
+                rijAlg.Key = Key;
+                rijAlg.IV = IV;
+
+                // Create an encryptor to perform the stream transform.
+                ICryptoTransform encryptor = rijAlg.CreateEncryptor(rijAlg.Key, rijAlg.IV);
+
+                // Create the streams used for encryption.
+                using (MemoryStream msEncrypt = new MemoryStream())
+                {
+                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                    {
+                        using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                        {
+
+                            //Write all data to the stream.
+                            swEncrypt.Write(plainText);
+                        }
+                        encrypted = msEncrypt.ToArray();
+                    }
+                }
+            }
+
+
+            // Return the encrypted bytes from the memory stream.
+            return encrypted;
+
+        }
+
+        static string DecryptStringFromBytes(byte[] cipherText, byte[] Key, byte[] IV)
+        {
+            // Check arguments.
+            if (cipherText == null || cipherText.Length <= 0)
+                throw new ArgumentNullException("cipherText");
+            if (Key == null || Key.Length <= 0)
+                throw new ArgumentNullException("Key");
+            if (IV == null || IV.Length <= 0)
+                throw new ArgumentNullException("IV");
+
+            // Declare the string used to hold
+            // the decrypted text.
+            string plaintext = null;
+
+            // Create an Rijndael object
+            // with the specified key and IV.
+            using (Rijndael rijAlg = Rijndael.Create())
+            {
+                rijAlg.Key = Key;
+                rijAlg.IV = IV;
+
+                // Create a decryptor to perform the stream transform.
+                ICryptoTransform decryptor = rijAlg.CreateDecryptor(rijAlg.Key, rijAlg.IV);
+
+                // Create the streams used for decryption.
+                using (MemoryStream msDecrypt = new MemoryStream(cipherText))
+                {
+                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                        {
+
+                            // Read the decrypted bytes from the decrypting stream
+                            // and place them in a string.
+                            plaintext = srDecrypt.ReadToEnd();
+                        }
+                    }
+                }
+
+            }
+
+            return plaintext;
+
         }
 
         #endregion
