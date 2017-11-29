@@ -18,9 +18,9 @@ namespace MarkLandmark
         #region [Members]
 
         private int _folderIndex;
-        private int _fppIndex;
+        private int _fileIndex;
         private double _scale;
-        private string _fppName;
+        private string _fileName;
         private double _imageWidth;
         private double _imageHeight;
 
@@ -279,9 +279,13 @@ namespace MarkLandmark
                 if (sfr != DialogResult.OK && sfr != DialogResult.Yes)
                     return;
 
-                //选取各子文件夹
                 _model.DsetFolder = new DirectoryInfo(folderPicker.SelectedPath);
                 var subfolders = _model.DsetFolder.GetDirectories();
+
+                //判断是否存在img/fpp文件夹
+                if (!subfolders.Select(o => o.Name).ToList().Contains("img") ||
+                    !subfolders.Select(o => o.Name).ToList().Contains("img"))
+                    throw new FileNotFoundException("ParrentFolder");
 
                 foreach (var folder in subfolders)
                 {
@@ -308,20 +312,48 @@ namespace MarkLandmark
                         }
                     }
                 }
-                _folderIndex = 0;
+
+                if (_model.ImgFolders.Count == 0 || _model.FppFolders.Count == 0)
+                    throw new FileNotFoundException("SubFolder");
 
                 //加载当前工作进度
                 LoadProgress();
 
-                IsNextEnabled = !(_fppIndex == (_model.ImgList.Count - 1) && (_folderIndex != (_model.ImgFolders.Count - 1)));
-                IsPreviousEnabled = !(_fppIndex == 0 && _folderIndex == 0);
+                IsNextEnabled = !(_fileIndex == (_model.ImgList.Count - 1) &&
+                                  (_folderIndex != (_model.ImgFolders.Count - 1)));
+                IsPreviousEnabled = !(_fileIndex == 0 && _folderIndex == 0);
 
                 //选取当前工作子文件夹
                 OpenSubFolder(null);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 ClearVisualization();
+
+                MessageBoxResult result;
+                if (ex.Message == "ParentFolder")
+                {
+                    result = System.Windows.MessageBox.Show(
+                        (String) App.Current.FindResource("Promp_DatasetMisingImgFpp"),
+                        "",
+                        MessageBoxButton.YesNo);
+                }
+                else if (ex.Message == "SubFolder")
+                {
+                    result = System.Windows.MessageBox.Show(
+                        (String)App.Current.FindResource("Promp_DatasetMisingSubfolders"),
+                        "",
+                        MessageBoxButton.YesNo);
+                }
+                else
+                {
+                    result = MessageBoxResult.No;
+                }
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    OnOpenDataset();
+                }
             }
         }
         
@@ -333,6 +365,8 @@ namespace MarkLandmark
             {
                 _model.ImgList.Add(x);
             }
+            if (_model.ImgList.Count == 0)
+                OnNextFolder();
 
             //选取标签
             _model.FppList.Clear();
@@ -343,37 +377,62 @@ namespace MarkLandmark
 
             //选取第一张图
             if (pickFirst == true)
-                _fppIndex = 0;
+                _fileIndex = 0;
             else if (pickFirst == false)
-                _fppIndex = (_model.ImgList.Count - 1);
+                _fileIndex = (_model.ImgList.Count - 1);
 
+            UpdateIsPreviousNextFolderEnabled();
+            DisplayImage();
+        }
+
+        private void UpdateIsPreviousNextFolderEnabled()
+        {
             IsPreviousFolderEnabled = _folderIndex > 0;
             IsNextFolderEnabled = _folderIndex >= 0 && _folderIndex < (_model.FppFolders.Count - 1);
-            DisplayImage();
         }
 
         private void DisplayImage()
         {
             ClearVisualization();
 
-            //以landmark文件为索引
-            if (_model.FppList.Count == 0) return;
+            ////以landmark文件为索引
+            //if (_model.FppList.Count == 0) return;
 
-            var fpp = _model.FppList[_fppIndex];
+            //var fpp = _model.FppList[_fileIndex];
+            //String fppContent = String.Empty;
+            //using (var sr = new StreamReader(fpp.FullName))
+            //{
+            //    fppContent = sr.ReadToEnd();
+            //}
+            //_fileName = fpp.Name.Substring(0, fpp.Name.IndexOf(".", StringComparison.Ordinal));
+
+            //var imgsNames = _model.ImgList.Select(o => o.Name.Substring(0, o.Name.IndexOf(".", StringComparison.Ordinal))).ToList();
+
+            //var image = _model.ImgList[imgsNames.IndexOf(_fileName)];
+
+            //var bitmapImage = new BitmapImage(new Uri(image.FullName, UriKind.Absolute));
+            //ImageSource = bitmapImage;
+            //ImagePath = _model.ImgFolders[_folderIndex].FullName + "\\" + _fileName + ".jpg";
+
+            //以jpg文件为索引
+            if (_model.ImgList.Count == 0) return;
+
+
+            var img = _model.ImgList[_fileIndex];
+
+            var bitmapImage = new BitmapImage(new Uri(img.FullName, UriKind.Absolute));
+            ImageSource = bitmapImage;
+            ImagePath = _model.ImgFolders[_folderIndex].FullName + "\\" + _fileName + ".jpg";
+
+            _fileName = img.Name.Substring(0, img.Name.IndexOf(".", StringComparison.Ordinal));
+            var fppsNames = _model.FppList.Select(o => o.Name.Substring(0, o.Name.IndexOf(".", StringComparison.Ordinal))).ToList();
+
+            var fpp = _model.FppList[fppsNames.IndexOf(_fileName)];
             String fppContent = String.Empty;
-            using (var sr = new StreamReader(_model.FppList[_fppIndex].FullName))
+            using (var sr = new StreamReader(fpp.FullName))
             {
                 fppContent = sr.ReadToEnd();
             }
-            _fppName = fpp.Name.Substring(0, fpp.Name.IndexOf(".", StringComparison.Ordinal));
-
-            var imgsNames = _model.ImgList.Select(o => o.Name.Substring(0, o.Name.IndexOf(".", StringComparison.Ordinal))).ToList();
-
-            var image = _model.ImgList[imgsNames.IndexOf(_fppName)];
-
-            var bitmapImage = new BitmapImage(new Uri(image.FullName, UriKind.Absolute));
-            ImageSource = bitmapImage;
-            ImagePath = _model.ImgFolders[_folderIndex].FullName + "\\" + _fppName + ".jpg";
 
             if (!string.IsNullOrEmpty(fppContent))
             {
@@ -381,7 +440,16 @@ namespace MarkLandmark
             }
 
             UpdateIsSaveEnabled();
+
+            UpdateIsPreviousNextEnabled();
         }
+
+        private void UpdateIsPreviousNextEnabled()
+        {
+            IsPreviousEnabled = !(_fileIndex == 0 && _folderIndex == 0);
+            IsNextEnabled = !(_fileIndex == (_model.ImgList.Count - 1) && _folderIndex == (_model.ImgFolders.Count - 1));
+        }
+
 
         private void DisplayLandmarks(string labelContent)
         {
@@ -416,7 +484,6 @@ namespace MarkLandmark
                     ++idx;
                 }
             }
-
         }
 
         private void AddLandmark(string input, int idx)
@@ -448,16 +515,15 @@ namespace MarkLandmark
                 return;
             }
 
-            if (_fppIndex == 0)
+            if (_fileIndex == 0)
             {
                 OnPreviousFolder(false);
             }
             else
             {
                 AutoSave();
-                --_fppIndex;
-                IsNextEnabled = true;
-                IsPreviousEnabled = !(_fppIndex == 0 && _folderIndex == 0);
+                --_fileIndex;
+
                 DisplayImage();
             }
         }
@@ -476,8 +542,7 @@ namespace MarkLandmark
                 OpenSubFolder(pickFirst);
             }
 
-            IsPreviousEnabled = !(_fppIndex == 0 && _folderIndex == 0);
-            IsNextEnabled = !(_fppIndex == (_model.ImgList.Count - 1) && _folderIndex == (_model.ImgFolders.Count - 1));
+
         }
 
         private void OnNext()
@@ -487,16 +552,15 @@ namespace MarkLandmark
                 return;
             }
 
-            if (_fppIndex == (_model.ImgList.Count - 1))
+            if (_fileIndex == (_model.ImgList.Count - 1))
             {
                 OnNextFolder();
             }
             else
             {
                 AutoSave();
-                ++_fppIndex;
-                IsPreviousEnabled = true;
-                IsNextEnabled = !(_fppIndex == 0 && _folderIndex == 0);
+                ++_fileIndex;
+
                 DisplayImage();
             }
         }
@@ -509,9 +573,11 @@ namespace MarkLandmark
                 ++_folderIndex;
                 OpenSubFolder();
             }
-
-            IsNextEnabled = !(_fppIndex == (_model.ImgList.Count - 1) && _folderIndex == (_model.ImgFolders.Count - 1));
-            IsPreviousEnabled = !(_fppIndex == 0 && _folderIndex == 0);
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    (String)App.Current.FindResource("Prompt_LastFolder"), null);
+            }
         }
 
 
@@ -529,7 +595,7 @@ namespace MarkLandmark
                          select Coor_RenderToActual(pnt.X, pnt.Y).ToString())
                          .Aggregate((x, y) => { return x + "\n" + y; });
 
-            string dstFileName = _model.FppFolders[_folderIndex].FullName + "/" + _fppName + ".txt";
+            string dstFileName = _model.FppFolders[_folderIndex].FullName + "/" + _fileName + ".txt";
 
             using (StreamWriter labelFile = new StreamWriter(dstFileName))
             {
@@ -723,7 +789,7 @@ namespace MarkLandmark
                         var result = System.Windows.MessageBox.Show((String)App.Current.FindResource("Prompt_LabellingFinish"), (String)App.Current.FindResource("Prompt_LabellingProgress"));
 
                         _folderIndex = 0;
-                        _fppIndex = 0;
+                        _fileIndex = 0;
                     }
                     else
                     {
@@ -735,19 +801,19 @@ namespace MarkLandmark
                             if (fppProgress < _model.FppFolders[folderProgress].GetFiles().Length - 1)
                             {
                                 _folderIndex = folderProgress;
-                                _fppIndex = fppProgress + 1;
+                                _fileIndex = fppProgress + 1;
                             }
                             else
                             {
                                 _folderIndex = folderProgress + 1;
-                                _fppIndex = 0;
+                                _fileIndex = 0;
                             }
 
                         }
                         else
                         {
                             _folderIndex = 0;
-                            _fppIndex = 0;
+                            _fileIndex = 0;
                         }
                     }
 
@@ -756,42 +822,51 @@ namespace MarkLandmark
                     throw new FileFormatException();
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                var result = System.Windows.MessageBox.Show((String)App.Current.FindResource("Prompt_LabellingCorrupt"), (String)App.Current.FindResource("Prompt_LabellingProgress"));
-
-                while (true)
+                if (ex is FileFormatException)
                 {
-                    var filePicker = new OpenFileDialog();
+                    var result = System.Windows.MessageBox.Show((String)App.Current.FindResource("Prompt_LabellingCorrupt"), (String)App.Current.FindResource("Prompt_LabellingProgress"));
 
-                    var sfr = filePicker.ShowDialog();
-
-                    if (sfr != DialogResult.OK && sfr != DialogResult.Yes)
-                        return;
-
-                    var file = new FileInfo(filePicker.FileName);
-                    var folder = new DirectoryInfo(file.DirectoryName);
-                    var folderIndex = _model.ImgFolders.Select(o => o.Name).ToList().IndexOf(folder.Name);
-                    if (folderIndex != -1)
+                    while (true)
                     {
-                        var fppIndex = _model.ImgFolders[folderIndex].GetFiles().Select(o => o.Name).ToList()
-                            .IndexOf(file.Name);
-                        if (fppIndex != -1)
-                        {
-                            _fppIndex = fppIndex;
-                            _folderIndex = folderIndex;
+                        var filePicker = new OpenFileDialog();
+
+                        var sfr = filePicker.ShowDialog();
+
+                        if (sfr != DialogResult.OK && sfr != DialogResult.Yes)
                             return;
+
+                        var file = new FileInfo(filePicker.FileName);
+                        var folder = new DirectoryInfo(file.DirectoryName);
+                        var folderIndex = _model.ImgFolders.Select(o => o.Name).ToList().IndexOf(folder.Name);
+                        if (folderIndex != -1)
+                        {
+                            var fppIndex = _model.ImgFolders[folderIndex].GetFiles().Select(o => o.Name).ToList()
+                                .IndexOf(file.Name);
+                            if (fppIndex != -1)
+                            {
+                                _fileIndex = fppIndex;
+                                _folderIndex = folderIndex;
+                                return;
+                            }
                         }
+                        System.Windows.MessageBox.Show((String)App.Current.FindResource("Prompt_LabellingSelectError"), (String)App.Current.FindResource("Prompt_LabellingProgress"));
                     }
-                    System.Windows.MessageBox.Show((String)App.Current.FindResource("Prompt_LabellingSelectError"), (String)App.Current.FindResource("Prompt_LabellingProgress"));
                 }
+                else if (ex is FileNotFoundException)
+                {
+                    _folderIndex = 0;
+                    _fileIndex = 0;
+                }
+
             }
 
         }
 
         private void SaveProgress()
         {
-            var logContent = "GODNESSOFLABELLING-DIR-" + _folderIndex + "-FPP-" + _fppIndex;
+            var logContent = "GODNESSOFLABELLING-DIR-" + _folderIndex + "-FPP-" + _fileIndex;
             var logPath = _model.DsetFolder + logPathRelative;
 
             using (Rijndael myRijndael = Rijndael.Create())

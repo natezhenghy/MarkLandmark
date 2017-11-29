@@ -22,6 +22,11 @@
     <sys:String x:Key="Prompt_LabellingCorrupt">Labelling progress log is corrupted. Please select current image manually.</sys:String>
     <sys:String x:Key="Prompt_LabellingSelectError">Please select image from current selected dataset folder.</sys:String>
 
+    <sys:String x:Key="Promp_DatasetMisingImgFpp">img/fpp folder is missing from selected dataset. Please press YES to reselect or contact data provider.</sys:String>
+    <sys:String x:Key="Promp_DatasetMisingSubfolders">img/fpp files is missing from selected dataset. Please press YES to reselect or contact data provider.</sys:String>
+
+    <sys:String x:Key="Prompt_LastFolder">This is last folder.</sys:String>
+
     <sys:String x:Key="Landmark_Unknown">Unknown</sys:String>
     <sys:String x:Key="Landmark_contour_chin">contour chin</sys:String>
     <sys:String x:Key="Landmark_contour_left1">contour left1</sys:String>

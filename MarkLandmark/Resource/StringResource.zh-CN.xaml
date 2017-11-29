@@ -22,6 +22,10 @@
     <sys:String x:Key="Prompt_LabellingCorrupt">标注进度记录文件已损坏，请手动选择当前进度图片。</sys:String> 
     <sys:String x:Key="Prompt_LabellingSelectError">请从当前数据库文件夹选择图片。</sys:String>
 
+    <sys:String x:Key="Promp_DatasetMisingImgFpp">该数据库缺少img或fpp文件夹，请按是以重新选择合法数据库，或与数据提供者联系。</sys:String>
+    <sys:String x:Key="Promp_DatasetMisingSubfolders">该数据库缺少img或fpp文件，请按是以重新选择合法数据库，或与数据提供者联系。</sys:String>
+
+    <sys:String x:Key="Prompt_LastFolder">这是最后一个文件夹。</sys:String>
 
     <sys:String x:Key="Landmark_Unknown">未知</sys:String>
     <sys:String x:Key="Landmark_contour_chin">面部轮廓-下巴</sys:String>
