@@ -776,9 +776,10 @@ namespace MarkLandmark
                 
 
                 var tokens = logContent.Split('-');
+                int folderProgress, fppProgress;
                 if (tokens[0] == "GODNESSOFLABELLING" && tokens[1] == "DIR" && tokens[3] == "FPP" //格式
-                    && Int32.TryParse(tokens[2], out int folderProgress) &&
-                    Int32.TryParse(tokens[4], out int fppProgress) //合法数字
+                    && Int32.TryParse(tokens[2], out folderProgress) &&
+                    Int32.TryParse(tokens[4], out fppProgress) //合法数字
                     && folderProgress >= 0 && folderProgress < _model.FppFolders.Count //合法folder index
                     && fppProgress >= 0 &&
                     fppProgress < _model.FppFolders[folderProgress].GetFiles().Length) //合法fpp index
