@@ -10,7 +10,7 @@ using System.Windows;
 [assembly: AssemblyTitle("MarkLandmark")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("DJI")]
 [assembly: AssemblyProduct("MarkLandmark")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]

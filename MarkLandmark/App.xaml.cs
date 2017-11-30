@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using log4net.Config;
 using System.Windows;
 
 namespace MarkLandmark
@@ -13,5 +8,9 @@ namespace MarkLandmark
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            XmlConfigurator.Configure();
+        }
     }
 }

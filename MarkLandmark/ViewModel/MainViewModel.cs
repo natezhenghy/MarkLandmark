@@ -153,6 +153,22 @@ namespace MarkLandmark
             }
         }
 
+        public ICommand WndLoaded
+        {
+            get
+            {
+                return new RelayCommand(OnWndLoaded);
+            }
+        }
+
+        public ICommand WndClosed
+        {
+            get
+            {
+                return new RelayCommand(OnWndClosed);
+            }
+        }
+
         public bool IsSaveEnabled
         {
             get
@@ -261,6 +277,24 @@ namespace MarkLandmark
 
         #region [Functions]
 
+        private void OnWndLoaded()
+        {
+            Log.LogInfo(Log.EventName.Launch, 
+                String.Format("{0} {1} {2}",
+                Environment.OSVersion, 
+                Environment.MachineName, 
+                Environment.UserName));
+        }
+
+        private void OnWndClosed()
+        {
+            Log.LogInfo(Log.EventName.Close,
+                String.Format("{0} {1} {2}",
+                Environment.OSVersion,
+                Environment.MachineName,
+                Environment.UserName));
+        }
+
         private void OnImagePanelSizeChanged(SizeChangedEventArgs e)
         {
             _imagePanelWidth = e.NewSize.Width;
@@ -279,13 +313,14 @@ namespace MarkLandmark
                 if (sfr != DialogResult.OK && sfr != DialogResult.Yes)
                     return;
 
+                Log.LogInfo(Log.EventName.OpenDataset, folderPicker.SelectedPath);
                 _model.DsetFolder = new DirectoryInfo(folderPicker.SelectedPath);
                 var subfolders = _model.DsetFolder.GetDirectories();
 
                 //判断是否存在img/fpp文件夹
                 if (!subfolders.Select(o => o.Name).ToList().Contains("img") ||
                     !subfolders.Select(o => o.Name).ToList().Contains("img"))
-                    throw new FileNotFoundException("ParrentFolder");
+                    throw new FileNotFoundException("ParentFolder");
 
                 foreach (var folder in subfolders)
                 {
@@ -423,6 +458,7 @@ namespace MarkLandmark
             var bitmapImage = new BitmapImage(new Uri(img.FullName, UriKind.Absolute));
             ImageSource = bitmapImage;
             ImagePath = _model.ImgFolders[_folderIndex].FullName + "\\" + _fileName + ".jpg";
+            Log.LogInfo(Log.EventName.OpenImage, ImagePath);
 
             _fileName = img.Name.Substring(0, img.Name.IndexOf(".", StringComparison.Ordinal));
             var fppsNames = _model.FppList.Select(o => o.Name.Substring(0, o.Name.IndexOf(".", StringComparison.Ordinal))).ToList();
@@ -499,7 +535,26 @@ namespace MarkLandmark
                 (name == Landmark.LandmarkName.left_eye_center || name == Landmark.LandmarkName.right_eye_center)
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-            RenderedLandmarks.Add(new Landmark { X = renderedX, Y = renderedY, Name = name, Visibility = visibility});
+            var landmark = new Landmark { X = renderedX, Y = renderedY, Name = name, Visibility = visibility };
+            landmark.LandmarkMoveStart += OnLandmarkMoveStart;
+            landmark.LandmarkMoveEnd += OnLandmarkMoveEnd;
+            RenderedLandmarks.Add(landmark);
+        }
+
+        private void OnLandmarkMoveStart(object sender, EventArgs e)
+        {
+            Landmark landmark = (Landmark)sender;
+            double x, y;
+            Coor_RenderToActual(out x, out y, landmark.X, landmark.Y);
+            Log.LogInfo(Log.EventName.MoveLandmarkStart, String.Format("{0} {1} {2} {3}", imagePath, landmark.Name, x, y));
+        }
+
+        private void OnLandmarkMoveEnd(object sender, EventArgs e)
+        {
+            Landmark landmark = (Landmark)sender;
+            double x, y;
+            Coor_RenderToActual(out x, out y, landmark.X, landmark.Y);
+            Log.LogInfo(Log.EventName.MoveLandmarkEnd, String.Format("{0} {1} {2} {3}", imagePath, landmark.Name, x, y));
         }
 
         private void ClearVisualization()
@@ -579,8 +634,7 @@ namespace MarkLandmark
                     (String)App.Current.FindResource("Prompt_LastFolder"), null);
             }
         }
-
-
+        
         private void OnSave()
         {
             if (!IsSaveEnabled)
@@ -602,6 +656,8 @@ namespace MarkLandmark
                 labelFile.Write(label);
                 labelFile.Flush();
             }
+
+            Log.LogInfo(Log.EventName.Save, dstFileName);
         }
 
         private void UpdateEyeCenter()

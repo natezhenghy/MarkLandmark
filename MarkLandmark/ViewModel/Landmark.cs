@@ -214,7 +214,7 @@ namespace MarkLandmark
             }
             private set
             {
-                if(value != isDirty)
+                if (value != isDirty)
                 {
                     isDirty = value;
                     RaisePropertyChanged("IsDirty");
@@ -228,9 +228,33 @@ namespace MarkLandmark
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        public event EventHandler LandmarkMoveStart;
+
+        public event EventHandler LandmarkMoveEnd;
+
         #endregion
 
         #region [Functions]
+
+        private void RaiseLandmarkMoveStart()
+        {
+            var h = this.LandmarkMoveStart;
+
+            if(null != h)
+            {
+                h(this, EventArgs.Empty);
+            }
+        }
+
+        private void RaiseLandmarkMoveEnd()
+        {
+            var h = this.LandmarkMoveEnd;
+
+            if(null != h)
+            {
+                h(this, EventArgs.Empty);
+            }
+        }
 
         private void RaisePropertyChanged(string p)
         {
@@ -241,7 +265,7 @@ namespace MarkLandmark
                 h(this, new PropertyChangedEventArgs(p));
             }
         }
-
+        
         private void OnMouseMoveInPanel(object obj, MouseEventArgs e)
         {
             var pnt = e.GetPosition(this.visualObject);
@@ -255,6 +279,8 @@ namespace MarkLandmark
             Mouse.RemoveMouseMoveHandler(this.panel, OnMouseMoveInPanel);
             Mouse.RemoveMouseLeaveHandler(this.panel, OnMouseLeavePanel);
             Mouse.RemoveMouseUpHandler(this.panel, OnMouseUpPanel);
+
+            RaiseLandmarkMoveEnd();
         }
 
         private void OnMouseUpPanel(object obj, MouseButtonEventArgs e)
@@ -262,13 +288,17 @@ namespace MarkLandmark
             Mouse.RemoveMouseMoveHandler(this.panel, OnMouseMoveInPanel);
             Mouse.RemoveMouseLeaveHandler(this.panel, OnMouseLeavePanel);
             Mouse.RemoveMouseUpHandler(this.panel, OnMouseUpPanel);
+
+            RaiseLandmarkMoveEnd();
         }
-        
+
         private void OnMouseLeftButtonDown(MouseButtonEventArgs e)
         {
             Mouse.AddMouseMoveHandler(this.panel, OnMouseMoveInPanel);
             Mouse.AddMouseLeaveHandler(this.panel, OnMouseLeavePanel);
             Mouse.AddMouseUpHandler(this.panel, OnMouseUpPanel);
+
+            RaiseLandmarkMoveStart();
         }
 
         private void OnLoaded(FrameworkElement e)

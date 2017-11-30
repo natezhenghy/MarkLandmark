@@ -28,6 +28,12 @@
             <mvvm:EventToCommand Command="{Binding Path=KeyDownCmd}"
                                  PassEventArgsToCommand="True"/>
         </i:EventTrigger>
+        <i:EventTrigger EventName="Loaded">
+            <mvvm:EventToCommand Command="{Binding Path=WndLoaded}"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Closed">
+            <mvvm:EventToCommand Command="{Binding Path=WndClosed}"/>
+        </i:EventTrigger>
     </i:Interaction.Triggers>
     <Window.DataContext>
         <local:MainViewModel/>
