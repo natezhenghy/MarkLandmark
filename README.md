@@ -8,10 +8,10 @@
              - 2.jpg
          - imgfolder2
      - fpp
-         - fppfolder1
+         - imgfolder1
              - 1.txt
              - 2.txt
-         - fppfolder2
+         - imgfolder2
 ## 使用方法
 1. 打开数据库文件夹
 2. 鼠标拖动调整landmarks
