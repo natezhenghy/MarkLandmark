@@ -8,7 +8,7 @@
              - 2.jpg
          - imgfolder2
      - fpp
-         - imgfolder1
+         - imgfolder1
              - 1.txt
              - 2.txt
          - imgfolder2
