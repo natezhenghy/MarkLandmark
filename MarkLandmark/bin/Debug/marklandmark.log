@@ -1,0 +1,4 @@
+2017-12-20 20:48:05,215 [1] INFO MarkLandmark.Log - Launch Microsoft Windows NT 6.2.9200.0 RAGNAROK natezhenghy
+2017-12-20 20:48:11,412 [1] INFO MarkLandmark.Log - OpenDataset D:\Dataset\Landmarks
+2017-12-20 20:48:14,820 [1] INFO MarkLandmark.Log - OpenImage D:\Dataset\Landmarks\img\Afghanistan_female\10517966_723586994424413_1613802655_n_0.jpg
+2017-12-20 20:48:18,146 [1] INFO MarkLandmark.Log - Close Microsoft Windows NT 6.2.9200.0 RAGNAROK natezhenghy

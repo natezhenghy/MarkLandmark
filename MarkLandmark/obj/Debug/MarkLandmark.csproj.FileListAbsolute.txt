@@ -23,3 +23,12 @@ D:\Code\MarkLandmark\MarkLandmark\obj\Debug\MarkLandmark.csproj.GenerateResource
 D:\Code\MarkLandmark\MarkLandmark\obj\Debug\MarkLandmark.csproj.CoreCompileInputs.cache
 D:\Code\MarkLandmark\MarkLandmark\obj\Debug\MarkLandmark.exe
 D:\Code\MarkLandmark\MarkLandmark\obj\Debug\MarkLandmark.pdb
+D:\Code\MarkLandmark\MarkLandmark\obj\Debug\App.baml
+D:\Code\MarkLandmark\MarkLandmark\obj\Debug\Resource\StringResource.zh-CN.baml
+D:\Code\MarkLandmark\MarkLandmark\obj\Debug\Resource\StringResource.baml
+D:\Code\MarkLandmark\MarkLandmark\bin\Debug\MarkLandmark.exe.manifest
+D:\Code\MarkLandmark\MarkLandmark\bin\Debug\MarkLandmark.application
+D:\Code\MarkLandmark\MarkLandmark\bin\Debug\log4net.dll
+D:\Code\MarkLandmark\MarkLandmark\bin\Debug\log4net.xml
+D:\Code\MarkLandmark\MarkLandmark\obj\Debug\MarkLandmark.exe.manifest
+D:\Code\MarkLandmark\MarkLandmark\obj\Debug\MarkLandmark.application

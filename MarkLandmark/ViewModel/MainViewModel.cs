@@ -319,7 +319,7 @@ namespace MarkLandmark
 
                 //判断是否存在img/fpp文件夹
                 if (!subfolders.Select(o => o.Name).ToList().Contains("img") ||
-                    !subfolders.Select(o => o.Name).ToList().Contains("img"))
+                    !subfolders.Select(o => o.Name).ToList().Contains("fpp"))
                     throw new FileNotFoundException("ParentFolder");
 
                 foreach (var folder in subfolders)
@@ -411,10 +411,13 @@ namespace MarkLandmark
             }
 
             //选取第一张图
-            if (pickFirst == true)
-                _fileIndex = 0;
-            else if (pickFirst == false)
-                _fileIndex = (_model.ImgList.Count - 1);
+            if (pickFirst.HasValue)
+            {
+                if (pickFirst == true)
+                    _fileIndex = 0;
+                else if (pickFirst == false)
+                    _fileIndex = (_model.ImgList.Count - 1);
+            }
 
             UpdateIsPreviousNextFolderEnabled();
             DisplayImage();
@@ -457,10 +460,11 @@ namespace MarkLandmark
 
             var bitmapImage = new BitmapImage(new Uri(img.FullName, UriKind.Absolute));
             ImageSource = bitmapImage;
+            _fileName = img.Name.Substring(0, img.Name.IndexOf(".", StringComparison.Ordinal));
+
             ImagePath = _model.ImgFolders[_folderIndex].FullName + "\\" + _fileName + ".jpg";
             Log.LogInfo(Log.EventName.OpenImage, ImagePath);
 
-            _fileName = img.Name.Substring(0, img.Name.IndexOf(".", StringComparison.Ordinal));
             var fppsNames = _model.FppList.Select(o => o.Name.Substring(0, o.Name.IndexOf(".", StringComparison.Ordinal))).ToList();
 
             var fpp = _model.FppList[fppsNames.IndexOf(_fileName)];
